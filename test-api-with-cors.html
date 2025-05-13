@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Authentication Test with CORS Support</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .container {
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            margin-right: 5px;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .api-url-container {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        #api-url {
+            width: 80%;
+            padding: 8px;
+        }
+        #update-url-btn {
+            background-color: #2196F3;
+        }
+        .debug-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Authentication Test</h1>
+    
+    <div class="api-url-container">
+        <label for="api-url">API URL:</label>
+        <input type="text" id="api-url" value="https://free-api-tvpr.onrender.com">
+        <button id="update-url-btn">Update URL</button>
+    </div>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="register">Register</div>
+        <div class="tab" data-tab="login">Login</div>
+        <div class="tab" data-tab="api-key">Create API Key</div>
+        <div class="tab" data-tab="profile">User Profile</div>
+    </div>
+    
+    <div class="tab-content active" id="register">
+        <h2>Register a New User</h2>
+        <div class="form-group">
+            <label for="reg-username">Username:</label>
+            <input type="text" id="reg-username" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+            <label for="reg-email">Email:</label>
+            <input type="email" id="reg-email" placeholder="Enter email">
+        </div>
+        <div class="form-group">
+            <label for="reg-password">Password:</label>
+            <input type="password" id="reg-password" placeholder="Enter password">
+        </div>
+        <div class="form-group">
+            <label for="reg-fullname">Full Name:</label>
+            <input type="text" id="reg-fullname" placeholder="Enter full name">
+        </div>
+        <button id="register-btn">Register</button>
+        <div class="result" id="register-result"></div>
+        <div class="debug-info" id="register-debug"></div>
+    </div>
+    
+    <div class="tab-content" id="login">
+        <h2>Login</h2>
+        <div class="form-group">
+            <label for="login-username">Username:</label>
+            <input type="text" id="login-username" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+            <label for="login-password">Password:</label>
+            <input type="password" id="login-password" placeholder="Enter password">
+        </div>
+        <button id="login-btn">Login</button>
+        <div class="result" id="login-result"></div>
+        <div class="debug-info" id="login-debug"></div>
+    </div>
+    
+    <div class="tab-content" id="api-key">
+        <h2>Create API Key</h2>
+        <div class="form-group">
+            <label for="key-name">Key Name:</label>
+            <input type="text" id="key-name" value="Test API Key">
+        </div>
+        <div class="form-group">
+            <label for="key-token">Access Token:</label>
+            <input type="text" id="key-token" placeholder="Enter access token from login">
+        </div>
+        <button id="create-key-btn">Create API Key</button>
+        <div class="result" id="api-key-result"></div>
+        <div class="debug-info" id="api-key-debug"></div>
+    </div>
+    
+    <div class="tab-content" id="profile">
+        <h2>User Profile</h2>
+        <div class="form-group">
+            <label for="profile-token">Access Token:</label>
+            <input type="text" id="profile-token" placeholder="Enter access token from login">
+        </div>
+        <button id="get-profile-btn">Get Profile</button>
+        <div class="result" id="profile-result"></div>
+        <div class="debug-info" id="profile-debug"></div>
+    </div>
+
+    <script>
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and content
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                document.getElementById(tab.getAttribute('data-tab')).classList.add('active');
+            });
+        });
+
+        // API URL handling
+        let apiBaseUrl = document.getElementById('api-url').value;
+        
+        document.getElementById('update-url-btn').addEventListener('click', () => {
+            apiBaseUrl = document.getElementById('api-url').value;
+            alert(`API URL updated to: ${apiBaseUrl}`);
+        });
+
+        // Generate random username
+        function generateRandomUsername() {
+            return `user${Math.floor(Math.random() * 10000)}`;
+        }
+
+        // Auto-fill with random data
+        const randomUsername = generateRandomUsername();
+        document.getElementById('reg-username').value = randomUsername;
+        document.getElementById('reg-email').value = `${randomUsername}@example.com`;
+        document.getElementById('reg-password').value = 'Password123!';
+        document.getElementById('reg-fullname').value = 'Test User';
+        document.getElementById('key-name').value = 'Test API Key';
+
+        // Helper function for API calls with detailed error handling
+        async function callApi(endpoint, method, body = null, token = null) {
+            const url = `${apiBaseUrl}${endpoint}`;
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            const options = {
+                method,
+                headers,
+                mode: 'cors', // Enable CORS
+                credentials: 'include', // Include credentials if needed
+            };
+            
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+            
+            try {
+                const debugInfo = {
+                    url,
+                    method,
+                    headers: { ...headers },
+                    body: body ? JSON.stringify(body) : null
+                };
+                
+                const response = await fetch(url, options);
+                let data;
+                
+                try {
+                    const text = await response.text();
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        return {
+                            success: false,
+                            status: response.status,
+                            data: { error: "Invalid JSON response", raw: text },
+                            debugInfo
+                        };
+                    }
+                } catch (e) {
+                    return {
+                        success: false,
+                        status: response.status,
+                        data: { error: "Failed to read response" },
+                        debugInfo
+                    };
+                }
+                
+                return {
+                    success: response.ok,
+                    status: response.status,
+                    data,
+                    debugInfo
+                };
+            } catch (error) {
+                return {
+                    success: false,
+                    error: error.message,
+                    debugInfo: {
+                        url,
+                        method,
+                        headers: { ...headers },
+                        body: body ? JSON.stringify(body) : null,
+                        errorName: error.name,
+                        errorMessage: error.message
+                    }
+                };
+            }
+        }
+
+        // Register functionality
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const fullName = document.getElementById('reg-fullname').value;
+            
+            const resultElement = document.getElementById('register-result');
+            const debugElement = document.getElementById('register-debug');
+            resultElement.innerHTML = 'Processing...';
+            
+            const result = await callApi('/auth/register', 'POST', {
+                username,
+                email,
+                password,
+                full_name: fullName
+            });
+            
+            if (result.success) {
+                resultElement.innerHTML = `<span class="success">Registration successful!</span>\n\n${JSON.stringify(result.data, null, 2)}`;
+                // Auto-fill login fields
+                document.getElementById('login-username').value = username;
+                document.getElementById('login-password').value = password;
+                
+                // Auto-fill token fields if available
+                if (result.data.access_token) {
+                    document.getElementById('key-token').value = result.data.access_token;
+                    document.getElementById('profile-token').value = result.data.access_token;
+                }
+            } else {
+                resultElement.innerHTML = `<span class="error">Registration failed! Status: ${result.status || 'Error'}</span>\n\n${JSON.stringify(result.data || { error: result.error }, null, 2)}`;
+            }
+            
+            debugElement.innerHTML = `Debug Info: ${JSON.stringify(result.debugInfo, null, 2)}`;
+        });
+        
+        // Login functionality
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            const resultElement = document.getElementById('login-result');
+            const debugElement = document.getElementById('login-debug');
+            resultElement.innerHTML = 'Processing...';
+            
+            const result = await callApi('/auth/login', 'POST', {
+                username,
+                password
+            });
+            
+            if (result.success) {
+                resultElement.innerHTML = `<span class="success">Login successful!</span>\n\n${JSON.stringify(result.data, null, 2)}`;
+                // Auto-fill token fields
+                if (result.data.access_token) {
+                    document.getElementById('key-token').value = result.data.access_token;
+                    document.getElementById('profile-token').value = result.data.access_token;
+                }
+            } else {
+                resultElement.innerHTML = `<span class="error">Login failed! Status: ${result.status || 'Error'}</span>\n\n${JSON.stringify(result.data || { error: result.error }, null, 2)}`;
+            }
+            
+            debugElement.innerHTML = `Debug Info: ${JSON.stringify(result.debugInfo, null, 2)}`;
+        });
+        
+        // Create API Key functionality
+        document.getElementById('create-key-btn').addEventListener('click', async () => {
+            const keyName = document.getElementById('key-name').value;
+            const accessToken = document.getElementById('key-token').value;
+            
+            const resultElement = document.getElementById('api-key-result');
+            const debugElement = document.getElementById('api-key-debug');
+            resultElement.innerHTML = 'Processing...';
+            
+            const result = await callApi('/auth/keys', 'POST', {
+                name: keyName
+            }, accessToken);
+            
+            if (result.success) {
+                resultElement.innerHTML = `<span class="success">API Key created successfully!</span>\n\n${JSON.stringify(result.data, null, 2)}`;
+            } else {
+                resultElement.innerHTML = `<span class="error">API Key creation failed! Status: ${result.status || 'Error'}</span>\n\n${JSON.stringify(result.data || { error: result.error }, null, 2)}`;
+            }
+            
+            debugElement.innerHTML = `Debug Info: ${JSON.stringify(result.debugInfo, null, 2)}`;
+        });
+        
+        // Get Profile functionality
+        document.getElementById('get-profile-btn').addEventListener('click', async () => {
+            const accessToken = document.getElementById('profile-token').value;
+            
+            const resultElement = document.getElementById('profile-result');
+            const debugElement = document.getElementById('profile-debug');
+            resultElement.innerHTML = 'Processing...';
+            
+            const result = await callApi('/auth/profile', 'GET', null, accessToken);
+            
+            if (result.success) {
+                resultElement.innerHTML = `<span class="success">Profile retrieved successfully!</span>\n\n${JSON.stringify(result.data, null, 2)}`;
+            } else {
+                resultElement.innerHTML = `<span class="error">Profile retrieval failed! Status: ${result.status || 'Error'}</span>\n\n${JSON.stringify(result.data || { error: result.error }, null, 2)}`;
+            }
+            
+            debugElement.innerHTML = `Debug Info: ${JSON.stringify(result.debugInfo, null, 2)}`;
+        });
+    </script>
+</body>
+</html>

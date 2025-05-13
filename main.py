@@ -8,6 +8,7 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI
 
 from app.config.settings import LOCAL_SERVER_PORT, YOUR_BACKEND_API_KEY, BACKEND_API_BASE_URL
@@ -70,6 +71,15 @@ app = FastAPI(
     description="API Service with MongoDB integration",
     version="1.0.0",
     lifespan=lifespan
+)
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 # Include routers
