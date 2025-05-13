@@ -15,7 +15,7 @@ load_env_file()
 getcontext().prec = 28
 
 # Server settings
-LOCAL_SERVER_PORT = int(os.environ.get("PORT", 8002))
+LOCAL_SERVER_PORT = int(os.environ.get("LOCAL_SERVER_PORT", 8002))
 
 # API settings
 BACKEND_API_BASE_URL = os.environ.get("BACKEND_API_BASE_URL", "https://api.devsdocode.com/v1")

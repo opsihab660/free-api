@@ -117,9 +117,4 @@ if __name__ == "__main__":
     if not YOUR_BACKEND_API_KEY:
         print("WARNING: MY_BACKEND_API_KEY is not set. Backend calls will fail.")
 
-    # Get host and port from environment for production or use defaults for local development
-    import os
-    host = os.environ.get("HOST", "127.0.0.1")
-    port = int(os.environ.get("PORT", LOCAL_SERVER_PORT))
-
-    uvicorn.run(app, host=host, port=port)
+    uvicorn.run(app, host="127.0.0.1", port=LOCAL_SERVER_PORT)
