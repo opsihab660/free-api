@@ -2,26 +2,7 @@
 
 This project is an API service that provides OpenAI-compatible endpoints with user management and usage tracking. Data is stored in MongoDB for persistence.
 
-## Deployment Options
-
-### Vercel Deployment
-
-This project is configured for easy deployment to Vercel:
-
-1. Fork or clone this repository to your GitHub account
-2. Sign up for a Vercel account at https://vercel.com
-3. Create a new project in Vercel and import your GitHub repository
-4. Configure the following environment variables in Vercel:
-   - `MONGODB_URI` - Your MongoDB connection string
-   - `MONGODB_DB_NAME` - Your MongoDB database name
-   - `MONGODB_USER_COLLECTION` - Your MongoDB collection name for users
-   - `BACKEND_API_BASE_URL` - Your backend API base URL
-   - `MY_BACKEND_API_KEY` - Your backend API key
-5. Deploy the project
-
-The deployment will use the configuration in `vercel.json` and the entry point in `api/vercel_app.py`.
-
-## Local Setup Instructions
+## Setup Instructions
 
 ### 1. Environment Configuration
 
@@ -117,6 +98,38 @@ The application uses MongoDB for all data storage:
   - Network connectivity to MongoDB Atlas is available
 
 - If you see "MongoDB connection failed" in the logs, the application will not be able to store or retrieve data.
-## GitHub Repository
+## Deployment on Render
 
-This project is available at https://github.com/opsihab660/free-api.git
+This application can be easily deployed on Render.com:
+
+### Option 1: Manual Deployment
+
+1. Create a new Web Service on Render
+2. Connect your GitHub/GitLab/Bitbucket repository
+3. Configure the following settings:
+   - **Environment**: Python
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. Add the following environment variables:
+   - `MONGODB_URI`: Your MongoDB connection string
+   - `MONGODB_DB_NAME`: Your MongoDB database name
+   - `MONGODB_USER_COLLECTION`: Your MongoDB collection name
+   - `BACKEND_API_BASE_URL`: Your backend API base URL
+   - `MY_BACKEND_API_KEY`: Your backend API key
+
+### Option 2: Using render.yaml (Infrastructure as Code)
+
+1. Make sure the `render.yaml` file is in your repository
+2. Go to the Render Dashboard and click "Blueprint" to create a new Blueprint Instance
+3. Connect your repository
+4. Render will automatically detect the `render.yaml` file and create the services
+5. You'll need to manually set the secret environment variables:
+   - `MONGODB_URI`: Your MongoDB connection string
+   - `MY_BACKEND_API_KEY`: Your backend API key
+
+### Important Notes for Render Deployment
+
+- Render automatically sets the `PORT` environment variable, which the application uses
+- The application is configured to listen on all interfaces (`0.0.0.0`) when deployed
+- For MongoDB Atlas, make sure to add Render's IP addresses to your MongoDB Atlas IP access list
+- You can find Render's IP addresses in their documentation: https://render.com/docs/static-outbound-ip-addresses

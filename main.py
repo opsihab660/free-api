@@ -4,6 +4,7 @@ Main application entry point
 
 import logging
 import json
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
@@ -103,8 +104,14 @@ async def view_stats():
 
 if __name__ == "__main__":
     import uvicorn
-    print(f"সার্ভার চালু হচ্ছে http://127.0.0.1:{LOCAL_SERVER_PORT} এ")
-    print(f"OpenAI SDK Base URL: 'http://127.0.0.1:{LOCAL_SERVER_PORT}/v1/api'")
+    # For local development, use 127.0.0.1
+    # For production on Render, the app will be available at the Render URL
+    port = int(os.environ.get("PORT", LOCAL_SERVER_PORT))
+    host = "0.0.0.0"  # Listen on all interfaces (local development)
+    local_url = f"http://127.0.0.1:{port}"
+
+    print(f"সার্ভার চালু হচ্ছে {local_url} এ (local development)")
+    print(f"OpenAI SDK Base URL: '{local_url}/v1/api' (local development)")
 
     # MongoDB connection info
     from app.config.settings import MONGODB_URI
@@ -117,4 +124,5 @@ if __name__ == "__main__":
     if not YOUR_BACKEND_API_KEY:
         print("WARNING: MY_BACKEND_API_KEY is not set. Backend calls will fail.")
 
-    uvicorn.run(app, host="127.0.0.1", port=LOCAL_SERVER_PORT)
+    # Use the same port and host configuration as defined above
+    uvicorn.run(app, host=host, port=port)

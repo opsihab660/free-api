@@ -1,0 +1,19 @@
+services:
+  # A web service with FastAPI
+  - type: web
+    name: fastapi-api-service
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MONGODB_URI
+        sync: false # This means you'll need to set it manually in the Render dashboard
+      - key: MONGODB_DB_NAME
+        value: api_service_db
+      - key: MONGODB_USER_COLLECTION
+        value: users
+      - key: BACKEND_API_BASE_URL
+        value: https://api.devsdocode.com/v1
+      - key: MY_BACKEND_API_KEY
+        sync: false # This means you'll need to set it manually in the Render dashboard
