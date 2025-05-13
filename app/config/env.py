@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 def load_env_file(env_file='.env'):
     """
     Load environment variables from .env file
-    
+
     Args:
         env_file: Path to the .env file (default: '.env')
-        
+
     Returns:
         bool: True if the file was loaded successfully, False otherwise
     """
@@ -28,22 +28,27 @@ def load_env_file(env_file='.env'):
                     # Skip empty lines and comments
                     if not line or line.startswith('#'):
                         continue
-                    
+
                     # Parse key-value pairs
                     if '=' in line:
                         key, value = line.split('=', 1)
                         key = key.strip()
                         value = value.strip()
-                        
+
                         # Don't override existing environment variables
                         if key not in os.environ:
                             os.environ[key] = value
                             logger.debug(f"Set environment variable: {key}")
-            
+
             return True
         else:
-            logger.warning(f"Environment file {env_file} not found")
-            return False
+            # Check if we're running on Render (Render sets PORT env var)
+            if os.environ.get('PORT'):
+                logger.info("Running on Render. Using environment variables from Render dashboard.")
+                return True
+            else:
+                logger.warning(f"Environment file {env_file} not found")
+                return False
     except Exception as e:
         logger.error(f"Error loading environment file: {e}")
         return False

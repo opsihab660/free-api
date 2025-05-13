@@ -43,7 +43,13 @@ MY_BACKEND_API_KEY=your-backend-api-key
 ### 3. Install Dependencies
 
 ```bash
-pip install fastapi uvicorn pymongo python-dotenv
+pip install -r requirements.txt
+```
+
+Or install the dependencies individually:
+
+```bash
+pip install fastapi uvicorn pymongo python-dotenv openai pydantic python-multipart bcrypt email-validator
 ```
 
 ### 4. Run the Application
