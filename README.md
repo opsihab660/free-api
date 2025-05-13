@@ -2,7 +2,26 @@
 
 This project is an API service that provides OpenAI-compatible endpoints with user management and usage tracking. Data is stored in MongoDB for persistence.
 
-## Setup Instructions
+## Deployment Options
+
+### Vercel Deployment
+
+This project is configured for easy deployment to Vercel:
+
+1. Fork or clone this repository to your GitHub account
+2. Sign up for a Vercel account at https://vercel.com
+3. Create a new project in Vercel and import your GitHub repository
+4. Configure the following environment variables in Vercel:
+   - `MONGODB_URI` - Your MongoDB connection string
+   - `MONGODB_DB_NAME` - Your MongoDB database name
+   - `MONGODB_USER_COLLECTION` - Your MongoDB collection name for users
+   - `BACKEND_API_BASE_URL` - Your backend API base URL
+   - `MY_BACKEND_API_KEY` - Your backend API key
+5. Deploy the project
+
+The deployment will use the configuration in `vercel.json` and the entry point in `api/vercel_app.py`.
+
+## Local Setup Instructions
 
 ### 1. Environment Configuration
 
@@ -98,4 +117,6 @@ The application uses MongoDB for all data storage:
   - Network connectivity to MongoDB Atlas is available
 
 - If you see "MongoDB connection failed" in the logs, the application will not be able to store or retrieve data.
-# free-api
+## GitHub Repository
+
+This project is available at https://github.com/opsihab660/free-api.git
