@@ -4,9 +4,11 @@ Vercel-specific entry point for the API Service
 
 import logging
 import json
+import traceback
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI
 
 import sys
@@ -14,11 +16,36 @@ import os
 # Add the parent directory to sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.config.settings import YOUR_BACKEND_API_KEY, BACKEND_API_BASE_URL
-from app.db.mongodb import connect_to_mongodb, close_mongodb_connection, load_all_users, save_users
-from app.auth.routes import auth_router, USER_API_KEYS_STORE
-from app.api.routes import api_router, set_backend_client
-from app.utils.helpers import CustomJSONEncoder
+# Try importing the required modules with error handling
+try:
+    # Import settings directly from environment variables
+    import os
+    YOUR_BACKEND_API_KEY = os.environ.get("MY_BACKEND_API_KEY", "")
+    BACKEND_API_BASE_URL = os.environ.get("BACKEND_API_BASE_URL", "https://api.devsdocode.com/v1")
+
+    # Import MongoDB functions from our Vercel-specific module
+    from api.mongodb_vercel import connect_to_mongodb, close_mongodb_connection, load_all_users, save_users, get_user_by_api_key, get_user_by_access_token, update_user
+
+    # Import other modules from the app
+    from app.auth.routes import auth_router, USER_API_KEYS_STORE
+    from app.api.routes import api_router, set_backend_client
+    from app.utils.helpers import CustomJSONEncoder
+
+    # Monkey patch the MongoDB functions in app.db.mongodb
+    import app.db.mongodb
+    app.db.mongodb.connect_to_mongodb = connect_to_mongodb
+    app.db.mongodb.close_mongodb_connection = close_mongodb_connection
+    app.db.mongodb.load_all_users = load_all_users
+    app.db.mongodb.save_users = save_users
+    app.db.mongodb.get_user_by_api_key = get_user_by_api_key
+    app.db.mongodb.get_user_by_access_token = get_user_by_access_token
+    app.db.mongodb.update_user = update_user
+
+except Exception as e:
+    print(f"Error importing modules: {e}")
+    traceback.print_exc()
+    # Re-raise to see in Vercel logs
+    raise
 
 # Configure logging
 logging.basicConfig(
@@ -76,9 +103,42 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Add debug endpoint
+@app.get("/debug", tags=["Debug"])
+async def debug_info():
+    """Debug endpoint to check environment and imports"""
+    import sys
+    import os
+
+    debug_info = {
+        "python_version": sys.version,
+        "sys_path": sys.path,
+        "environment_variables": {k: v for k, v in os.environ.items() if not k.startswith("AWS_") and not k.lower().startswith("secret")},
+        "current_directory": os.getcwd(),
+        "directory_contents": os.listdir(os.getcwd()) if os.path.exists(os.getcwd()) else "Cannot list directory",
+        "app_directory": os.path.dirname(os.path.abspath(__file__)),
+        "mongodb_uri_configured": bool(os.environ.get("MONGODB_URI")),
+        "backend_api_key_configured": bool(os.environ.get("MY_BACKEND_API_KEY")),
+    }
+
+    return JSONResponse(content=debug_info)
+
 # Include routers
-app.include_router(auth_router)
-app.include_router(api_router)
+try:
+    app.include_router(auth_router)
+    app.include_router(api_router)
+except Exception as e:
+    logger.error(f"Error including routers: {e}")
+    traceback.print_exc()
 
 @app.get("/", tags=["Root"])
 async def root():
