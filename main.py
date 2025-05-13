@@ -39,8 +39,13 @@ async def lifespan(app: FastAPI):
         # Load user data from MongoDB
         mongo_users = load_all_users()
         if mongo_users:
-            USER_API_KEYS_STORE.update(mongo_users)
-            logger.info(f"Loaded {len(USER_API_KEYS_STORE)} users from MongoDB.")
+            # Only update the in-memory store if it's empty or has fewer users
+            # This prevents overwriting MongoDB data when the service restarts
+            if not USER_API_KEYS_STORE or len(mongo_users) > len(USER_API_KEYS_STORE):
+                USER_API_KEYS_STORE.update(mongo_users)
+                logger.info(f"Loaded {len(mongo_users)} users from MongoDB into in-memory store.")
+            else:
+                logger.info(f"In-memory store already has {len(USER_API_KEYS_STORE)} users. Not overwriting with {len(mongo_users)} from MongoDB.")
     else:
         logger.error("MongoDB connection failed. Application will not be able to store data.")
 
@@ -57,9 +62,23 @@ async def lifespan(app: FastAPI):
 
     # Shutdown logic
     if mongodb_connected:
-        # Save user data to MongoDB
-        save_users(USER_API_KEYS_STORE)
-        logger.info("User stats saved to MongoDB.")
+        # First check if we have users in the in-memory store
+        if USER_API_KEYS_STORE:
+            # Get current count of users in MongoDB
+            mongo_users = load_all_users()
+            mongo_user_count = len(mongo_users) if mongo_users else 0
+
+            # Only save if we have a reasonable number of users in memory
+            # This prevents accidentally wiping out the database if the in-memory store is empty
+            if len(USER_API_KEYS_STORE) >= mongo_user_count:
+                # Save user data to MongoDB
+                save_users(USER_API_KEYS_STORE)
+                logger.info(f"User stats saved to MongoDB: {len(USER_API_KEYS_STORE)} users.")
+            else:
+                logger.warning(f"Not saving in-memory store to MongoDB: In-memory has {len(USER_API_KEYS_STORE)} users, MongoDB has {mongo_user_count}.")
+        else:
+            logger.warning("In-memory store is empty. Not saving to MongoDB to prevent data loss.")
+
         # Close MongoDB connection
         close_mongodb_connection()
     else:
@@ -102,9 +121,13 @@ async def view_stats():
     # If MongoDB is available, refresh the in-memory store first
     mongo_users = load_all_users()
     if mongo_users:
-        # Update the in-memory store with the latest data from MongoDB
-        USER_API_KEYS_STORE.update(mongo_users)
-        logger.info(f"Refreshed in-memory store with {len(mongo_users)} users from MongoDB.")
+        # Only update the in-memory store if MongoDB has more users
+        # This prevents accidentally losing data when the service restarts
+        if len(mongo_users) > len(USER_API_KEYS_STORE):
+            USER_API_KEYS_STORE.update(mongo_users)
+            logger.info(f"Refreshed in-memory store with {len(mongo_users)} users from MongoDB.")
+        else:
+            logger.info(f"In-memory store has {len(USER_API_KEYS_STORE)} users, MongoDB has {len(mongo_users)}. Not updating in-memory store.")
 
     # Use dumps with custom encoder for top-level USER_API_KEYS_STORE
     # then parse back to ensure JSONResponse gets a structure it can handle

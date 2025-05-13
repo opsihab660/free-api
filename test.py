@@ -1,7 +1,7 @@
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="user_key_kimH7IYsIBVQZ5ZVGHQtkTPV",
+    api_key="user_key_v00E3nDcfrFpCzXizS4wUJTJ",
     base_url="https://free-api-tvpr.onrender.com/v1/api"
 )
 
