@@ -20,7 +20,7 @@ LOCAL_SERVER_PORT = int(os.environ.get("LOCAL_SERVER_PORT", 8002))
 # API settings
 BACKEND_API_BASE_URL = os.environ.get("BACKEND_API_BASE_URL", "https://api.devsdocode.com/v1")
 YOUR_BACKEND_API_KEY = os.environ.get("MY_BACKEND_API_KEY", "ddc-temp-free-e3b73cd814cc4f3ea79b5d4437912663")
-PROVIDER_PREFIX = "provider-4/"
+PROVIDER_PREFIX = "provider-2/"
 
 # MongoDB settings
 MONGODB_URI = os.environ.get("MONGODB_URI", "mongodb+srv://yoosihab:opsihab660@cluster0.cexbyfs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
