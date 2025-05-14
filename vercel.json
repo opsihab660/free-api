@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "vercel_app.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "rewrites": [
+    { "source": "/docs", "destination": "/vercel_app.py" },
+    { "source": "/redoc", "destination": "/vercel_app.py" },
+    { "source": "/openapi.json", "destination": "/vercel_app.py" },
+    { "source": "/v1/api/:path*", "destination": "/vercel_app.py" },
+    { "source": "/auth/:path*", "destination": "/vercel_app.py" },
+    { "source": "/admin/:path*", "destination": "/vercel_app.py" },
+    { "source": "/(.*)", "destination": "/vercel_app.py" }
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1"
+  }
+}
